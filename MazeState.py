@@ -49,6 +49,7 @@ class MazeState:
         self.goal = ()
         self.readFile(file)
         self.die = Die()
+        self.current = ()
         
     def readFile(self, filename):
         file = open(filename)
@@ -60,6 +61,7 @@ class MazeState:
                 if char == 'S':
                     self.maze[curLine].append(Spaces.current)
                     self.start = (curLine, curChar)
+                    self.current = (curLine, curChar)
                 if char == '.':
                     self.maze[curLine].append(Spaces.free)
                 if char == '*':
@@ -72,6 +74,9 @@ class MazeState:
             
     def getChildStates(self):
         return []
+
+    def isSolution(self):
+        return current == goal
     
     def printMaze(self):
         curLine = 0
