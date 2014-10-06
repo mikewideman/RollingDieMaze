@@ -10,37 +10,89 @@ class Moves(Enum):
     south=3
     west=4
 
+class Spaces:
+    free=1
+    obstacle=2
+    current=3
+    
 class Die:
-
-    def __init(self, activeFace):
+    def __init__(self):
         self.activeFace = 1
         self.westSide = 4
         self.northSide = 2
     
-    def rotate(direction):
-        startActive = activeFace
-        startWest = westFace
-        startNorth = northFace
+    def rotate(self, direction):
+        startActive = self.activeFace
+        startWest = self.westFace
+        startNorth = self.northFace
         if direction == Moves.north:   
-            activeFace = 7-startNorth
-            northFace = startNorth
+            self.activeFace = 7-startNorth
+            self.northFace = startNorth
         if direction == Moves.east:
-            activeFace = startWest
-            westFace = 7-startActive
+            self.activeFace = startWest
+            self.westFace = 7-startActive
         if direction == Moves.west:
-            activeFace = 7-startWest
-            westFace = startActive
+            self.activeFace = 7-startWest
+            self.westFace = startActive
         if direction == Moves.south:
-            activeFace = startNorth
-            startNorth = 7-active
+            self.activeFace = startNorth
+            self.startNorth = 7-active
+
+    def getCurrentFace(self):
+        return self.activeFace
         
 class MazeState:
-    maze = []
-
-    def __init__(self, filename):
-        readFile(filename)
-
-    def readFile(filename):
-        return 
-    def getChildStates():
+    
+    def __init__(self, file):
+        self.maze = []
+        self.start = ()
+        self.goal = ()
+        self.readFile(file)
+        self.die = Die()
+        
+    def readFile(self, filename):
+        file = open(filename)
+        curLine = 0
+        curChar = 0
+        for line in file:
+            self.maze.append([])
+            for char in line:
+                if char == 'S':
+                    self.maze[curLine].append(Spaces.current)
+                    self.start = (curLine, curChar)
+                if char == '.':
+                    self.maze[curLine].append(Spaces.free)
+                if char == '*':
+                    self.maze[curLine].append(Spaces.obstacle)
+                if char == 'G':
+                    self.maze[curLine].append(Spaces.free)
+                    self.goal = (curLine,curChar)
+                curChar+=1
+            curLine+=1
+            
+    def getChildStates(self):
         return []
+    
+    def printMaze(self):
+        curLine = 0
+        curChar = 0
+        for line in self.maze:
+            for space in line:
+                if space == Spaces.current:
+                    print(str(self.die.getCurrentFace()), end="")
+                elif space == Spaces.obstacle:
+                    print('*', end="")
+                elif space == Spaces.free:
+                    if (curLine,curChar) == self.start:
+                        print('S', end="")
+                    elif (curLine,curChar) == self.goal:
+                        print('G', end="")
+                    else:
+                        print('.',end="")
+                curChar+=1
+            curLine+=1
+            print() #print newline
+
+
+maze = MazeState("maze.dat.txt")
+maze.printMaze()
