@@ -105,12 +105,12 @@ class AStar(object):
         """
         return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
 
-    def get_heurisitc_euclidean(self, cell):
+    def get_heuristic_euclidean(self, cell):
         xdist = cell.x - self.end.x
         ydist = cell.y - self.end.y
         return math.sqrt(xdist*xdist + ydist*ydist)
     
-    def get_heurisitc_manhattan_reachable(self, cell):
+    def get_heuristic_manhattan_reachable(self, cell):
         if cell.reachable:
             return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
         else:
