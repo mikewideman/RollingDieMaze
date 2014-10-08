@@ -93,7 +93,7 @@ class AStar(object):
             self.start = self.get_cell(0, 0)
             self.end = self.get_cell(5, 5)
 
-    def get_heurisitc(self, cell):
+    def get_heuristic(self, cell):
         return get_heurstic_manhattan(self, cell)
     
     def get_heuristic_manhattan(self, cell):
