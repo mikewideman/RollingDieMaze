@@ -110,9 +110,12 @@ class AStar(object):
         ydist = cell.y - self.end.y
         return math.sqrt(xdist*xdist + ydist*ydist)
     
-    def get_heurisitc_3d(self, cell):
-        #Distance between this cell and the ending cell including die state
-        return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y) + 1 )
+    def get_heurisitc_manhattan_reachable(self, cell):
+        if cell.reachable:
+            return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
+        else:
+            return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y) + 3
+
 
 
     def get_cell(self, x, y):
