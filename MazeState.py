@@ -108,7 +108,7 @@ class AStar(object):
         @param y cell y coordinate
         @returns cell
         """
-    return self.cells[x * self.grid_height + y]
+        return self.cells[x * self.grid_height + y]
 
     def get_adjacent_cells(self, cell):
         """
@@ -132,7 +132,7 @@ class AStar(object):
         cell = self.end
         while cell.parent is not self.start:
             cell = cell.parent
-            print 'path: cell: %d,%d' % (cell.x, cell.y)
+            print('path: cell: %d,%d' % (cell.x, cell.y))
             
     def compare(self, cell1, cell2):
         """
@@ -218,7 +218,8 @@ class MazeState:
             curLine+=1
 
     def isValidSpace(self,x,y):
-        return x >= 0 and y >=0 and x < len(self.maze) and y < len(self.maze[x]) and not self.maze[x][y] == '*'
+        return x >= 0 and y >=0 and x < len(self.maze) and \
+        y < len(self.maze[x]) and not self.maze[x][y] == '*'
 
     def getChildStates(self):
         children = []
