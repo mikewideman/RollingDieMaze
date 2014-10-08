@@ -6,6 +6,7 @@
 
 from enum import Enum
 import copy
+from math import sqrt
 class Moves(Enum):
     north=1
     east=2
@@ -92,7 +93,10 @@ class AStar(object):
             self.start = self.get_cell(0, 0)
             self.end = self.get_cell(5, 5)
 
-    def get_heuristic(self, cell):
+    def get_heurisitc(self, cell):
+        return get_heurstic_manhattan(self, cell)
+    
+    def get_heuristic_manhattan(self, cell):
         """
         Compute the heuristic value H for a cell: distance between
         this cell and the ending cell multiply by 10.
@@ -100,6 +104,16 @@ class AStar(object):
         @returns heuristic value H
         """
         return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
+
+    def get_heurisitc_euclidean(self, cell):
+        xdist = cell.x - self.end.x
+        ydist = cell.y - self.end.y
+        return math.sqrt(xdist*xdist + ydist*ydist)
+    
+    def get_heurisitc_3d(self, cell):
+        #Distance between this cell and the ending cell including die state
+        return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y) + 1 )
+
 
     def get_cell(self, x, y):
         """
