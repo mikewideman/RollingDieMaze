@@ -77,9 +77,11 @@ class Cell(object):
         self.g = 0
         self.h = 0
         self.f = 0
-
+    def __lt__(self, other):
+        return (self.f < other.f)
+        
 class AStar(object):
-    def __init__(self, maze, start, end, heuristic):
+    def __init__(self, maze, die, start, end, heuristic):
         self.opened = []
         heapq.heapify(self.opened)
         self.closed = set()
@@ -87,6 +89,7 @@ class AStar(object):
         self.grid_height = len(maze)
         self.grid_width = len(maze[0])
         self.maze = maze
+        self.die = die
         self.important_points = []
         self.important_points.append(start)
         self.important_points.append(end)
@@ -95,22 +98,21 @@ class AStar(object):
     def init_grid(self):
         for x in range(self.grid_width):
             for y in range(self.grid_height):
-                if self.maze[y][x] == Spaces.obstacle:
+                if self.maze[y][x] == Spaces.obstacle and self.die:
                     reachable = False
                 else:
                     reachable = True
                 self.cells.append(Cell(x, y, reachable))
         self.start = self.get_cell(self.important_points[0][0], self.important_points[0][1])
-        print(self.grid_height)
         self.end = self.get_cell(self.important_points[1][0], self.important_points[1][1])
 
     def get_heuristic(self, cell):
         if self.heuristic == 1:
-            return get_heuristic_manhattan(cell)
+            return self.get_heuristic_manhattan(cell)
         elif self.heuristic == 2:
-            return get_heuristic_euclidean(cell)
+            return self.get_heuristic_euclidean(cell)
         else:
-            return get_heuristic_manhattan_reachable(cell)
+            return self.get_heuristic_manhattan_reachable(cell)
     
     def get_heuristic_manhattan(self, cell):
         """
@@ -139,6 +141,8 @@ class AStar(object):
         @param y cell y coordinate
         @returns cell
         """
+        print(len(self.cells))
+        print((x * self.grid_height + y))
         return self.cells[x * self.grid_height + y]
 
     def get_adjacent_cells(self, cell):
@@ -247,6 +251,7 @@ class MazeState:
                     self.goal = (curLine,curChar)
                 curChar+=1
             curLine+=1
+            curChar=0
 
     def isValidSpace(self,x,y):
         return x >= 0 and y >=0 and x < len(self.maze) and \
@@ -300,7 +305,7 @@ class MazeState:
 
 #Test code for this module
 my_maze = MazeState("maze.dat.txt")
-astar = AStar(my_maze.maze, my_maze.start, my_maze.goal, Heuristics.manhattan)
+astar = AStar(my_maze.maze, my_maze.die, my_maze.start, my_maze.goal, Heuristics.manhattan)
 astar.init_grid()
 astar.process()
 #children = maze.getChildStates()
