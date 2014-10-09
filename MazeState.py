@@ -7,6 +7,8 @@
 from enum import Enum
 import copy
 from math import sqrt
+import heapq
+
 class Moves(Enum):
     north=1
     east=2
@@ -17,7 +19,12 @@ class Spaces:
     free=1
     obstacle=2
     current=3
-    
+
+class Heuristics:
+    manhattan=1
+    euclidean=2
+    reachable_manhattan=3
+
 class Die:
     def __init__(self):
         self.activeFace = 1
@@ -72,29 +79,38 @@ class Cell(object):
         self.f = 0
 
 class AStar(object):
-    def __init__(self):
+    def __init__(self, maze, start, end, heuristic):
         self.opened = []
         heapq.heapify(self.opened)
         self.closed = set()
         self.cells = []
-        self.grid_height = 6
-        self.grid_width = 6
-
+        self.grid_height = len(maze)
+        self.grid_width = len(maze[0])
+        self.maze = maze
+        self.important_points = []
+        self.important_points.append(start)
+        self.important_points.append(end)
+        self.heuristic = heuristic
+        
     def init_grid(self):
-        walls = ((0, 5), (1, 0), (1, 1), (1, 5), (2, 3),
-                 (3, 1), (3, 2), (3, 5), (4, 1), (4, 4), (5, 1))
         for x in range(self.grid_width):
             for y in range(self.grid_height):
-                if (x, y) in walls:
+                if self.maze[y][x] == Spaces.obstacle:
                     reachable = False
                 else:
                     reachable = True
                 self.cells.append(Cell(x, y, reachable))
-            self.start = self.get_cell(0, 0)
-            self.end = self.get_cell(5, 5)
+        self.start = self.get_cell(self.important_points[0][0], self.important_points[0][1])
+        print(self.grid_height)
+        self.end = self.get_cell(self.important_points[1][0], self.important_points[1][1])
 
     def get_heuristic(self, cell):
-        return get_heurstic_manhattan(self, cell)
+        if self.heuristic == 1:
+            return get_heuristic_manhattan(cell)
+        elif self.heuristic == 2:
+            return get_heuristic_euclidean(cell)
+        else:
+            return get_heuristic_manhattan_reachable(cell)
     
     def get_heuristic_manhattan(self, cell):
         """
@@ -103,7 +119,7 @@ class AStar(object):
         @param cell
         @returns heuristic value H
         """
-        return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
+        return (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
 
     def get_heuristic_euclidean(self, cell):
         xdist = cell.x - self.end.x
@@ -112,11 +128,9 @@ class AStar(object):
     
     def get_heuristic_manhattan_reachable(self, cell):
         if cell.reachable:
-            return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
+            return (abs(cell.x - self.end.x) + abs(cell.y - self.end.y))
         else:
-            return 10 * (abs(cell.x - self.end.x) + abs(cell.y - self.end.y) + 3
-
-
+            return (abs(cell.x - self.end.x) + abs(cell.y - self.end.y)+3)
 
     def get_cell(self, x, y):
         """
@@ -285,10 +299,13 @@ class MazeState:
             print() #print newline
 
 #Test code for this module
-#maze = MazeState("maze.dat.txt")
+my_maze = MazeState("maze.dat.txt")
+astar = AStar(my_maze.maze, my_maze.start, my_maze.goal, Heuristics.manhattan)
+astar.init_grid()
+astar.process()
 #children = maze.getChildStates()
 #nextChildren = children[0].getChildStates()
-#maze.printMaze()
+maze.printMaze()
 #for child in children:
 #    child.printMaze()
 #for child in nextChildren:
