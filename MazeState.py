@@ -8,6 +8,7 @@ from enum import Enum
 import copy
 from math import sqrt
 import heapq
+import sys
 
 class Moves(Enum):
     north=1
@@ -77,11 +78,13 @@ class Cell(object):
         self.g = 0
         self.h = 0
         self.f = 0
+        self.die = Die()
+        
     def __lt__(self, other):
         return (self.f < other.f)
         
 class AStar(object):
-    def __init__(self, maze, die, start, end, heuristic):
+    def __init__(self, realmaze, maze, die, start, end, heuristic):
         self.opened = []
         heapq.heapify(self.opened)
         self.closed = set()
@@ -94,6 +97,7 @@ class AStar(object):
         self.important_points.append(start)
         self.important_points.append(end)
         self.heuristic = heuristic
+        self.realmaze = realmaze
         
     def init_grid(self):
         for x in range(self.grid_width):
@@ -126,7 +130,7 @@ class AStar(object):
     def get_heuristic_euclidean(self, cell):
         xdist = cell.x - self.end.x
         ydist = cell.y - self.end.y
-        return math.sqrt(xdist*xdist + ydist*ydist)
+        return sqrt(xdist*xdist + ydist*ydist)
     
     def get_heuristic_manhattan_reachable(self, cell):
         if cell.reachable:
@@ -141,8 +145,6 @@ class AStar(object):
         @param y cell y coordinate
         @returns cell
         """
-        print(len(self.cells))
-        print((x * self.grid_height + y))
         return self.cells[x * self.grid_height + y]
 
     def get_adjacent_cells(self, cell):
@@ -165,9 +167,15 @@ class AStar(object):
         
     def display_path(self):
         cell = self.end
+        celllist = []
         while cell.parent is not self.start:
+            celllist.insert(0,cell)
             cell = cell.parent
-            print('path: cell: %d,%d' % (cell.x, cell.y))
+        celllist.insert(0,cell)
+        for c in celllist:
+            print('next location: %d,%d' % (c.x, c.y))
+            self.realmaze.setDie(c.y, c.x)
+            self.realmaze.printMaze()
             
     def compare(self, cell1, cell2):
         """
@@ -194,16 +202,22 @@ class AStar(object):
         adj.f = adj.h + adj.g
         
     def process(self):
+        queueTotal = 0
+        popTotal = 0
         # add starting cell to open heap queue
         heapq.heappush(self.opened, (self.start.f, self.start))
+        queueTotal+=1
         while len(self.opened):
             # pop cell from heap queue
             f, cell = heapq.heappop(self.opened)
+            popTotal+=1
             # add cell to closed list so we don't process it twice
             self.closed.add(cell)
             # if ending cell, display found path
             if cell is self.end:
                 self.display_path()
+                print("Nodes visited: " + str(popTotal))
+                print("Nodes added: " + str(queueTotal))
                 break
             # get adjacent cells for cell
             adj_cells = self.get_adjacent_cells(cell)
@@ -219,6 +233,7 @@ class AStar(object):
                         self.update_cell(adj_cell, cell)
                         # add adj cell to open list
                         heapq.heappush(self.opened, (adj_cell.f, adj_cell))
+                        queueTotal +=1
 class MazeState:
     
     def __init__(self, file):
@@ -282,7 +297,25 @@ class MazeState:
 
     def isSolution(self):
         return self.current == self.goal
-    
+
+    def moveDie(self, direction):
+        if move == Moves.north:
+            nextSpace = (self.current[0]-1, self.current[1])
+        elif move == Moves.south:
+            nextSpace = (self.current[0]+1, self.current[1])
+        elif move == Moves.east:
+            nextSpace = (self.current[0], self.current[1]+1)
+        elif move == Moves.west:
+            nextSpace = (self.current[0], self.current[1]-1)
+        self.maze[self.current[0]][self.current[1]] = Spaces.free
+        self.maze[nextSpace[0]][nextSpace[1]] = Spaces.current
+        self.current = nextSpace
+
+    def setDie(self, x, y):
+        self.maze[self.current[0]][self.current[1]] = Spaces.free
+        self.maze[x][y] = Spaces.current
+        self.current = (x,y)
+        
     def printMaze(self):
         curLine = 0
         curChar = 0
@@ -303,15 +336,20 @@ class MazeState:
             curLine+=1
             print() #print newline
 
-#Test code for this module
-my_maze = MazeState("maze.dat.txt")
-astar = AStar(my_maze.maze, my_maze.die, my_maze.start, my_maze.goal, Heuristics.manhattan)
-astar.init_grid()
-astar.process()
-#children = maze.getChildStates()
-#nextChildren = children[0].getChildStates()
-maze.printMaze()
-#for child in children:
-#    child.printMaze()
-#for child in nextChildren:
-#    child.printMaze()
+
+if not len(sys.argv) == 3:
+    print("Usage: Python MazeState.py <filename> <heuristic #")
+else:
+    my_maze = MazeState(sys.argv[1])
+    my_maze.printMaze()
+    if int(sys.argv[2]) == 0:
+        print("Using Manhattan Heuristic")
+        astar = AStar(my_maze, my_maze.maze, my_maze.die, my_maze.start, my_maze.goal, Heuristics.manhattan)
+    elif int(sys.argv[2]) == 1:
+        print("Using Euclidian Heuristic")
+        astar = AStar(my_maze, my_maze.maze, my_maze.die, my_maze.start, my_maze.goal, Heuristics.euclidean)
+    else:
+        print("Using Reachable Manhattan Heuristic")
+        astar = AStar(my_maze, my_maze.maze, my_maze.die, my_maze.start, my_maze.goal, Heuristics.reachable_manhattan)
+    astar.init_grid()
+    astar.process()
